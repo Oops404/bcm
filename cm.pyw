@@ -11,7 +11,7 @@ import uuid
 from subprocess import Popen, PIPE
 
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon,QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -135,8 +135,9 @@ class UiMainWindow(object):
                 logger.info(cmd)
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
-                    self.text_view.append("结果: {}, 内容:{}\n进度：{}%".format("已合并", f.name, str(
+                    self.text_view.append("内容:{}，{}\n进度：{}%".format(f.name, "已合并", str(
                         round(((index + 1) / len(self.task_list)) * 100, 2))))
+                    self.text_view.moveCursor(QTextCursor.End)
             self.text_view.append("运行结束。 developed by: BILIBILI_ID:1489684 翻滚吧年糕君")
         except Exception as e:
             logger.error(e)
