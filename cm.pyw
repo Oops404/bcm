@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 # author:　cheneyjin@outlook.com
-import typing
+
+import _thread
+import json
+import logging
+import os
+import re
+import sys
+import uuid
+from subprocess import Popen, PIPE
 
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
-import sys
-import os
-import json
-import re
-from subprocess import Popen, PIPE
-import _thread
-import subprocess
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    filename='log.md')
+logger = logging.getLogger(__name__)
 
 
 def validate(file_name_str):
@@ -38,6 +41,7 @@ class UiMainWindow(object):
 
     def __init__(self) -> None:
         super().__init__()
+        self.task_id = None
         self.directory = None
         self.target_video_name = "video.m4s"
         self.target_audio_name = "audio.m4s"
@@ -61,8 +65,16 @@ class UiMainWindow(object):
         self.text_view.setText(_translate("copy cache folder from your phone local storage path :\n"
                                           "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
                                           "note: do not change anything in cache folder",
-                                          "从手机存储：'/Android/data/tv.danmaku.bili/download'路径\n"
-                                          "拷贝缓存<完整文件夹>到电脑中，存放于任意目录。"))
+                                          "从手机存储路径：'/Android/data/tv.danmaku.bili/download'\n"
+                                          "拷贝缓存<完整文件夹>到电脑中，放于任意目录。"))
+        self.text_view.append("\r\n")
+        self.text_view.append(_translate("if application gets some exception, "
+                                         "please email me at 'cheneyjin@outlook.com' and attach the file named 'log.md'"
+                                         "that in application folder."
+                                         "email content has picture and text that will be better."
+                                         , "如果运行异常，请邮件至'cheneyjin@outlook.com'，"
+                                           "邮件中请上传程序目录下的'log.md'文件，"
+                                           "内容能图文并茂就更好了~"))
         self.path_select_btn.setText(_translate("select cache path", "选择路径"))
         self.start_btn.setText(_translate("start merge", "开始"))
 
@@ -115,19 +127,22 @@ class UiMainWindow(object):
 
     def task(self, arg1, arg2):
         try:
+            self.task_id = uuid.uuid1()
+            logger.info("\nTASK START {}".format(self.task_id))
             for index, f in enumerate(self.task_list):
                 cmd = "{}/local/ffmpeg.exe -y -i \"{}/video.m4s\" -i \"{}/audio.m4s\" -c:v copy -c:a aac -strict " \
                       "experimental \"{}/{}.mp4\"".format(self.run_path, f.path, f.path, f.path, validate(f.name))
-                p = Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                p.wait()
-                self.text_view.append("res: {}, cnt:{}".format("合并成功" if p.returncode > 0 else "合并失败", f.name))
-                # print(index)
-                self.text_view.append("进度：{}%".format(str(round(((index + 1) / len(self.task_list)) * 100, 2))))
+                logger.info(cmd)
+                with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
+                    p.communicate()
+                    self.text_view.append("结果: {}, 内容:{}\n进度：{}%".format("已合并", f.name, str(
+                        round(((index + 1) / len(self.task_list)) * 100, 2))))
             self.text_view.append("运行结束。 developed by: BILIBILI_ID:1489684 翻滚吧年糕君")
         except Exception as e:
-            print(e)
+            logger.error(e)
         finally:
             self.merging = False
+            logger.info("TASK FINISHED {}".format(self.task_id))
 
     def select_path(self):
         self.task_list = list()
@@ -156,7 +171,7 @@ class UiMainWindow(object):
         file_info_path = "{}/../{}".format(parent_path, self.target_file_info)
         with open(file_info_path, "r", encoding="utf-8") as f:
             file_info = json.load(f)
-            t = Target(file_info["title"], parent_path, "{}/../".format(parent_path))
+            t = Target(file_info["page_data"]["download_subtitle"], parent_path, "{}/../".format(parent_path))
             self.task_list.append(t)
 
 
