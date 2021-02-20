@@ -11,7 +11,7 @@ import uuid
 from subprocess import Popen, PIPE
 
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import QIcon,QTextCursor
+from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,14 +27,16 @@ def validate(file_name_str):
 
 class Target(object):
 
-    def __init__(self, name, path, root) -> None:
+    def __init__(self, name, video_path, audio_path, root) -> None:
         super().__init__()
         self.name = name
-        self.path = path
+        self.video_path = video_path
+        self.audio_path = audio_path
         self.root = root
 
     def __str__(self) -> str:
-        return "name:{}, path:{}, root:{}".format(self.name, self.path, self.root)
+        return "name:{}, video_path:{}, audio_path:{}, root:{}" \
+            .format(self.name, self.video_path, self.audio_path, self.root)
 
 
 class UiMainWindow(object):
@@ -50,6 +52,7 @@ class UiMainWindow(object):
         self.task_list = None
         self.run_path = os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
         self.merging = False
+        self.searching = False
         # print(self.run_path)
         self.style = """
                 *{
@@ -59,7 +62,7 @@ class UiMainWindow(object):
 
     def retranslate_ui(self, main_window):
         _translate = QtCore.QCoreApplication.translate
-        main_window.setWindowTitle(_translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君"))
+        main_window.setWindowTitle(_translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君 ID:1489684"))
         main_window.setFixedSize(main_window.width(), main_window.height())
         main_window.setWindowIcon(QIcon('local/favicon.ico'))
         self.text_view.setText(_translate("copy cache folder from your phone local storage path :\n"
@@ -116,6 +119,9 @@ class UiMainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def start_merge(self):
+        if self.searching:
+            self.text_view.append("检测缓存数量任务还没结束，别点啦！")
+            return
         if not self.merging:
             self.text_view.setText("开始合并，请等待...")
             self.merging = True
@@ -129,9 +135,13 @@ class UiMainWindow(object):
         try:
             self.task_id = uuid.uuid1()
             logger.info("\nTASK START {}".format(self.task_id))
+            if self.task_list is None or len(self.task_list) < 1:
+                self.text_view.append("别点啦，没检测到文件")
+                return
             for index, f in enumerate(self.task_list):
-                cmd = "{}/local/ffmpeg.exe -y -i \"{}/video.m4s\" -i \"{}/audio.m4s\" -c:v copy -c:a aac -strict " \
-                      "experimental \"{}/{}.mp4\"".format(self.run_path, f.path, f.path, f.path, validate(f.name))
+                cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
+                      "experimental \"{}/{}.mp4\"" \
+                    .format(self.run_path, f.video_path, f.audio_path, f.root, validate(f.name))
                 logger.info(cmd)
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
@@ -153,8 +163,12 @@ class UiMainWindow(object):
         if "" == path_str:
             self.text_view.append("没选择任何路径。")
         else:
-            self.search_path(path_str)
-            self.text_view.append("识别到: {}个可合并视频。".format(len(self.task_list)))
+            self.searching = True
+            try:
+                self.search_path(path_str)
+                self.text_view.append("识别到: {}个可合并视频。".format(len(self.task_list)))
+            finally:
+                self.searching = False
         # for f in self.task_list:
         #     print(f)
 
@@ -170,10 +184,26 @@ class UiMainWindow(object):
     def load_file(self, path):
         parent_path = os.path.abspath(os.path.join(path, ".."))
         file_info_path = "{}/../{}".format(parent_path, self.target_file_info)
-        with open(file_info_path, "r", encoding="utf-8") as f:
-            file_info = json.load(f)
-            t = Target(file_info["page_data"]["download_subtitle"], parent_path, "{}/../".format(parent_path))
-            self.task_list.append(t)
+        name = None
+        try:
+            with open(file_info_path, "r", encoding="utf-8") as f:
+                file_info = json.load(f)
+                name = file_info["page_data"]["download_subtitle"]
+        except Exception as e:
+            logger.error(e)
+        video_path = "{}/{}".format(parent_path, self.target_video_name)
+        audio_path = "{}/{}".format(parent_path, self.target_audio_name)
+        video_exist = os.path.exists(video_path)
+        audio_exist = os.path.exists(audio_path)
+        if video_exist is False or audio_exist is False:
+            logger.error("FILE PATH {}:{}".format(video_exist, video_path))
+            logger.error("FILE PATH {}:{}".format(audio_exist, audio_path))
+            self.text_view.append("检测到缓存存在缺失,路径：{}".format(parent_path))
+            return
+        # "{}/../".format(parent_path)
+        t = Target(name if name is not None else "临时名称{}".format(uuid.uuid1())
+                   , video_path, audio_path, parent_path)
+        self.task_list.append(t)
 
 
 if __name__ == '__main__':
