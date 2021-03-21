@@ -188,7 +188,11 @@ class UiMainWindow(object):
         try:
             with open(file_info_path, "r", encoding="utf-8") as f:
                 file_info = json.load(f)
-                name = file_info["page_data"]["download_subtitle"]
+                print()
+                if "ep" in file_info.keys():
+                    name = "({}){}".format(file_info["ep"]["index"], file_info["ep"]["index_title"])
+                else:
+                    name = file_info["page_data"]["download_subtitle"]
         except Exception as e:
             logger.error(e)
         video_path = "{}/{}".format(parent_path, self.target_video_name)
