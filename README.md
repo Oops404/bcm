@@ -18,4 +18,17 @@
 #### 项目介绍
 批量合并B站APP的离线缓存文件，生成可食用的无损MP4。
 
+#### 开源地址
 
+<p style="padding:10px;"  width="90%">
+
+Gitee 开源地址 : https://gitee.com/Oops404/cache-merge-bilibili
+
+GitHub 开源地址（暂停） ：https://github.com/Oops404/cache-merge-bilibili
+</p>
+
+<p style="padding:10px;"  width="90%">
+
+欢迎提交 [pull request](https://gitee.com/Oops404/cache-merge-bilibili/pulls)，注意对应提交对应 `master` 分支
+
+</p>
