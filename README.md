@@ -1,13 +1,13 @@
-  <h1 align="center">
+<h1 align="center">
     哔哩BCM
-  </h1>
-  <h4 align="center">
+</h1>
+<h4 align="center">
     开 箱 即 用 的 B 站 缓 存 合 并 工 具
-  </h4> 
+</h4> 
 
 <p align="center">
     <a href="#">
-        <img src="https://img.shields.io/badge/Pear Admin Layui-0.28A+-green.svg" alt="Pear Admin Layui Version">
+        <img src="https://img.shields.io/badge/哔哩BCM-0.28A+-green.svg" alt="哔哩BCM">
     </a>
 </p>
 
