@@ -1,4 +1,10 @@
-# 哔哩BCM
+<img src="admin/images/logo.png" width="90px" style="margin-top:30px;"/>
+  <h1 align="center">
+    哔哩BCM
+  </h1>
+  <h4 align="center">
+    开 箱 即 用 的 B 站 缓 存 合 并 工 具
+  </h4> 
 
 <p align="center">
     <a href="#">
