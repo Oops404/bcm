@@ -13,6 +13,7 @@
     <a href="#">
         <img src="https://img.shields.io/badge/哔哩BCM-0.28A+-green.svg" alt="哔哩BCM">
     </a>
+    <img src="qr.png" width = "25%" height = "25%" alt="qr" align=center title="关注我的bilibili账号：翻滚吧年糕君"/>
 </p>
 
 #### 项目介绍
@@ -21,4 +22,4 @@
 [关注我的bilibili账号：翻滚吧年糕君](https://space.bilibili.com/1489684)
 
 
-<img src="qr.png" width = "30%" height = "30%" alt="qr" align=center />
+
