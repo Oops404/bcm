@@ -188,7 +188,6 @@ class UiMainWindow(object):
         try:
             with open(file_info_path, "r", encoding="utf-8") as f:
                 file_info = json.load(f)
-                print()
                 if "ep" in file_info.keys():
                     name = "({}){}".format(file_info["ep"]["index"], file_info["ep"]["index_title"])
                 else:
@@ -205,7 +204,7 @@ class UiMainWindow(object):
             self.text_view.append("检测到缓存存在缺失,路径：{}".format(parent_path))
             return
         # "{}/../".format(parent_path)
-        t = Target(name if name is not None else "临时名称{}".format(uuid.uuid1())
+        t = Target(validate(name) if name is not None else "临时名称{}".format(uuid.uuid1())
                    , video_path, audio_path, parent_path)
         self.task_list.append(t)
 
