@@ -14,7 +14,9 @@ from subprocess import Popen, PIPE
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
+import cgitb
 
+cgitb.enable(format='text')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     filename='log.md')
 logger = logging.getLogger(__name__)
@@ -81,6 +83,7 @@ class UiMainWindow(object):
                                              "that in application folder.",
                                              "如果运行异常，请邮件至'cheneyjin@outlook.com'， 邮件中请上传程序目录下的log.md文件， 内容能图文并茂就更好了~"))
         self.path_select_btn.setText(self.translate("select cache path", "选择路径"))
+        
         self.start_btn.setText(self.translate("start merge", "开始"))
 
     # noinspection PyAttributeOutsideInit,PyUnresolvedReferences
