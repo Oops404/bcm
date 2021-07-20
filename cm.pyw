@@ -11,7 +11,7 @@ import sys
 import uuid
 from subprocess import Popen, PIPE
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
@@ -54,6 +54,11 @@ class UiMainWindow(object):
         self.run_path = os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
         self.merging = False
         self.searching = False
+        self.font = QtGui.QFont()
+        self.font.setFamily("Microsoft YaHei Light")
+        self.font.setPointSize(10)
+        self.translate = QtCore.QCoreApplication.translate
+
         # print(self.run_path)
         self.style = """
                 *{
@@ -62,51 +67,53 @@ class UiMainWindow(object):
             """
 
     def retranslate_ui(self, main_window):
-        _translate = QtCore.QCoreApplication.translate
-        main_window.setWindowTitle(_translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君 ID:1489684"))
+        main_window.setWindowTitle(self.translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君 ID:1489684"))
         main_window.setFixedSize(main_window.width(), main_window.height())
         main_window.setWindowIcon(QIcon('local/favicon.ico'))
-        self.text_view.setText(_translate("copy cache folder from your phone local storage path :\n"
-                                          "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
-                                          "note: do not change anything in cache folder",
-                                          "从手机存储路径：'/Android/data/tv.danmaku.bili/download'\n"
-                                          "拷贝缓存<完整文件夹>到电脑中，放于任意目录。"))
-        self.text_view.append("\r\n")
-        self.text_view.append(_translate("if application gets some exception, "
-                                         "please email me at 'cheneyjin@outlook.com' and attach the file named 'log.md'"
-                                         "that in application folder."
-                                         "email content has picture and text that will be better."
-                                         , "如果运行异常，请邮件至'cheneyjin@outlook.com'，"
-                                           "邮件中请上传程序目录下的'log.md'文件，"
-                                           "内容能图文并茂就更好了~"))
-        self.path_select_btn.setText(_translate("select cache path", "选择路径"))
-        self.start_btn.setText(_translate("start merge", "开始"))
+        self.text_view.setText(self.translate("copy cache folder from your phone local storage path :\n"
+                                              "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
+                                              "note: do not change anything in cache folder",
+                                              "从手机存储路径：'/Android/data/tv.danmaku.bili/download'"
+                                              "拷贝缓存'完整文件夹'到电脑中，放于任意目录。"))
+        self.text_view.append("\r")
+        self.text_view.append(self.translate("if application gets some exception, "
+                                             "please email me at 'cheneyjin@outlook.com' and attach the file named 'log.md'"
+                                             "that in application folder.",
+                                             "如果运行异常，请邮件至'cheneyjin@outlook.com'， 邮件中请上传程序目录下的log.md文件， 内容能图文并茂就更好了~"))
+        self.path_select_btn.setText(self.translate("select cache path", "选择路径"))
+        self.start_btn.setText(self.translate("start merge", "开始"))
 
     # noinspection PyAttributeOutsideInit,PyUnresolvedReferences
     def setup_ui(self, main_window):
         main_window.setObjectName("mainWindow")
-        main_window.resize(471, 203)
+        main_window.resize(600, 320)
         main_window.setStyleSheet(self.style)
 
         self.central_widget = QtWidgets.QWidget(main_window)
         self.central_widget.setObjectName("central_widget")
 
         self.vertical_LayoutWidget = QtWidgets.QWidget(self.central_widget)
-        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 471, 191))
+        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 309))
         self.vertical_LayoutWidget.setObjectName("verticalLayoutWidget")
         self.vertical_LayoutWidget.setContentsMargins(1, 1, 1, 1)
         self.vertical_layout = QtWidgets.QVBoxLayout(self.vertical_LayoutWidget)
         self.vertical_layout.setObjectName("verticalLayout")
+
         self.path_select_btn = QtWidgets.QPushButton(self.vertical_LayoutWidget)
         self.path_select_btn.setObjectName("path_select_btn")
+        self.path_select_btn.setFont(self.font)
+
         self.vertical_layout.addWidget(self.path_select_btn)
         self.text_view = QtWidgets.QTextEdit(self.vertical_LayoutWidget)
         self.text_view.setObjectName("text_view")
+        self.text_view.setFont(self.font)
 
         self.vertical_layout.addWidget(self.text_view)
         self.start_btn = QtWidgets.QPushButton(self.vertical_LayoutWidget)
         self.start_btn.setObjectName("start_btn")
         self.start_btn.setContentsMargins(0, 10, 0, 10)
+        self.start_btn.setFont(self.font)
+
         self.vertical_layout.addWidget(self.start_btn)
         main_window.setCentralWidget(self.central_widget)
         self.status_bar = QtWidgets.QStatusBar(main_window)
@@ -142,7 +149,7 @@ class UiMainWindow(object):
             for index, f in enumerate(self.task_list):
                 cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
                       "experimental \"{}/{}.mp4\"" \
-                    .format(self.run_path, f.video_path, f.audio_path, f.root, validate(f.name))
+                    .format(self.run_path, f.video_path, f.audio_path, f.root, f.name)
                 logger.info(cmd)
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()

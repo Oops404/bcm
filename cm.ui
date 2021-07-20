@@ -26,6 +26,12 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QPushButton" name="path_select_btn">
+       <property name="font">
+        <font>
+         <family>微软雅黑 Light</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>选择路径</string>
        </property>
@@ -36,6 +42,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="start_btn">
+       <property name="font">
+        <font>
+         <family>微软雅黑 Light</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>开始</string>
        </property>
