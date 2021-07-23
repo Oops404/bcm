@@ -238,8 +238,8 @@ class UiMainWindow(object):
             return
         if os.path.exists(self.path_output):
             parent_path = self.path_output
-        t = Target(validate(name) if name is not None else "临时名称{}".format(uuid.uuid1())
-                   , video_path, audio_path, parent_path)
+        t = Target(validate(name) if name is not None else "临时名称{}".format(uuid.uuid1()),
+                   video_path, audio_path, parent_path)
         self.task_list.append(t)
 
 
