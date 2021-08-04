@@ -10,6 +10,7 @@ import re
 import sys
 import uuid
 from subprocess import Popen, PIPE
+from multiprocessing import cpu_count
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon, QTextCursor
@@ -48,8 +49,8 @@ class Target(object):
         self.root = root
 
     def __str__(self) -> str:
-        return "name:{}, video_path:{}, audio_path:{}, root:{}" \
-            .format(self.name, self.video_path, self.audio_path, self.root)
+        return "name:{}, video_path:{}, audio_path:{}, root:{}".format(self.name, self.video_path, self.audio_path,
+                                                                       self.root)
 
 
 class UiMainWindow(object):
@@ -70,12 +71,15 @@ class UiMainWindow(object):
         self.font.setFamily("Microsoft YaHei Light")
         self.font.setPointSize(10)
         self.translate = QtCore.QCoreApplication.translate
+        self.cpu_count = cpu_count()
+        self.thread_count = 1 if self.cpu_count <= 1 else self.cpu_count - 1
 
+        print(self.thread_count)
         self.path_output = "{}/{}".format(path_app, self.translate("output", "输出目录"))
         if not os.path.exists(self.path_output):
             os.mkdir(self.path_output)
 
-    def retranslate_ui(self, main_window):
+    def re_translate_ui(self, main_window):
         main_window.setWindowTitle(self.translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君 ID:1489684"))
         main_window.setFixedSize(main_window.width(), main_window.height())
         main_window.setWindowIcon(QIcon('local/favicon.ico'))
@@ -135,7 +139,7 @@ class UiMainWindow(object):
         self.path_select_btn.clicked.connect(self.select_path)
         self.start_btn.clicked.connect(self.start_merge)
 
-        self.retranslate_ui(main_window)
+        self.re_translate_ui(main_window)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def start_merge(self):
@@ -162,16 +166,13 @@ class UiMainWindow(object):
                 self.text_view.append(self.translate("no cache file searched", "别点啦，没检测到文件"))
                 return
             for index, f in enumerate(self.task_list):
-                cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
-                      "experimental \"{}/{}.mp4\"" \
-                    .format(self.run_path, f.video_path, f.audio_path, f.root, f.name)
+                cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict experimental \"{}/{}.mp4\"" \
+                    .format(self.thread_count, self.run_path, f.video_path, f.audio_path, f.root, f.name)
                 logger.info(cmd)
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
-                    self.text_view.append("内容:{}，{}\n进度：{}%"
-                                          .format(f.name,
-                                                  "已合并",
-                                                  str(round(((index + 1) / len(self.task_list)) * 100, 2))))
+                    self.text_view.append("内容:{}，{}\n进度：{}%".format(f.name, "已合并", str(
+                        round(((index + 1) / len(self.task_list)) * 100, 2))))
                     self.text_view.moveCursor(QTextCursor.End)
             if os.path.exists(self.path_output):
                 self.text_view.append(self.translate("finished. check the output path in app dir.",
