@@ -22,14 +22,14 @@
 
 <p style="padding:10px;"  width="90%">
 
-Gitee 开源地址 : https://gitee.com/Oops404/cache-merge-bilibili
+Gitee 开源地址 : https://gitee.com/Oops404/bcm
 
 GitHub 开源地址（暂停） ：https://github.com/Oops404/cache-merge-bilibili
 </p>
 
 <p style="padding:10px;"  width="90%">
 
-欢迎提交 [pull request](https://gitee.com/Oops404/cache-merge-bilibili/pulls)，注意对应提交对应 `master` 分支
+欢迎提交 [pull request](https://gitee.com/Oops404/bcm/pulls)，注意对应提交对应 `master` 分支
 
 </p>
 
