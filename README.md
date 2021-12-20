@@ -27,7 +27,7 @@ Gitee 开源地址 : https://gitee.com/Oops404/bcm
 
 <p style="padding:10px;"  width="90%">
 
-欢迎提交 [pull request](https://gitee.com/Oops404/bcm/pulls)，注意对应提交对应 `master` 分支
+欢迎提交 [pull request](https://gitee.com/Oops404/bcm/pulls)，注意对应提交 `master` 分支
 
 </p>
 
