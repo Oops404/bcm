@@ -23,8 +23,6 @@
 <p style="padding:10px;"  width="90%">
 
 Gitee 开源地址 : https://gitee.com/Oops404/bcm
-
-GitHub 开源地址（暂停） ：https://github.com/Oops404/cache-merge-bilibili
 </p>
 
 <p style="padding:10px;"  width="90%">
