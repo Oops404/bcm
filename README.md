@@ -18,6 +18,9 @@
 #### 项目介绍
 批量合并B站APP的离线缓存文件，生成可食用的无损MP4。
 
+#### 视频教程
+B站地址：https://www.bilibili.com/video/BV1D541177ak
+
 #### 开源地址
 
 <p style="padding:10px;"  width="90%">
