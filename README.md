@@ -11,7 +11,7 @@
 
 <p align="center">
     <a href="#">
-        <img src="https://img.shields.io/badge/哔哩BCM-0.21B-green.svg" alt="哔哩BCM">
+        <img src="https://img.shields.io/badge/哔哩BCM-0.31B-green.svg" alt="哔哩BCM">
     </a>
 </p>
 
