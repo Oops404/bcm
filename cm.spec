@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['cm.pyw'],
-             pathex=['F:\\Workspace Pycharm\\cache-merge-bilibili'],
+             pathex=['F:\\workspace-python\\cache-merge-bilibili'],
              binaries=[],
              datas=[],
              hiddenimports=[],

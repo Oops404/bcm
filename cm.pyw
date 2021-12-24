@@ -28,8 +28,19 @@ logging.basicConfig(level=logging.INFO,
                     filename='log.md')
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
-path_app = os.path.dirname(os.path.abspath(__file__))
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+sys.excepthook = handle_exception
+
+path_app = os.path.split(os.path.abspath(sys.argv[0]))[0]
 
 
 def validate(file_name_str):
@@ -63,7 +74,7 @@ class UiMainWindow(object):
         self.target_audio_name = "audio.m4s"
         self.target_file_info = "entry.json"
 
-        self.run_path = os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
+        # self.run_path = os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
         self.merging = False
         self.searching = False
         self.font = QtGui.QFont()
@@ -83,7 +94,7 @@ class UiMainWindow(object):
                                               "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
                                               "note: do not change anything in cache folder",
                                               "从手机存储路径：'/Android/data/tv.danmaku.bili/download'"
-                                              "拷贝缓存'完整文件夹'到电脑中，放于任意目录。"))
+                                              "拷贝缓存'完整文件夹'到电脑中，至任意目录内。"))
         self.text_view.append("\r")
         self.text_view.append(self.translate("if application gets some exception, "
                                              "please email me at 'cheneyjin@outlook.com' "
@@ -134,7 +145,6 @@ class UiMainWindow(object):
 
         self.path_select_btn.clicked.connect(self.select_path)
         self.start_btn.clicked.connect(self.start_merge)
-
         self.retranslate_ui(main_window)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
@@ -162,31 +172,36 @@ class UiMainWindow(object):
                 self.text_view.append(self.translate("no cache file searched", "别点啦，没检测到文件"))
                 return
             for index, f in enumerate(self.task_list):
-                cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
-                      "experimental \"{}/{}.mp4\"" \
-                    .format(self.run_path, f.video_path, f.audio_path, f.root, f.name)
+                # cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
+                #       "experimental \"{}/{}.mp4\"" \
+                #     .format(path_app, f.video_path, f.audio_path, f.root, f.name)
+                cmd = "{}/local/ffmpeg.exe -i \"{}\" -i \"{}\" -c:v copy -c:a copy \"{}/{}.mp4\"" \
+                    .format(path_app, f.video_path, f.audio_path, f.root, f.name)
                 logger.info(cmd)
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
-                    self.text_view.append("内容:{}，{}\n进度：{}%"
-                                          .format(f.name,
-                                                  "已合并",
-                                                  str(round(((index + 1) / len(self.task_list)) * 100, 2))))
+                    self.text_view.append("内容:{}，{}\n进度：{}%".format(
+                        f.name,
+                        "已合并",
+                        str(round(((index + 1) / len(self.task_list)) * 100, 2)))
+                    )
                     self.text_view.moveCursor(QTextCursor.End)
             if os.path.exists(self.path_output):
                 self.text_view.append(self.translate("finished. check the output path in app dir.",
-                                                     "运行结束，查看应用路径下的输入文件夹吧。"))
+                                                     "运行结束，查看本应用路径下的\"输出目录\"吧。"))
             else:
                 self.text_view.append(self.translate("output path was not exist, please check result in cache path.",
                                                      "输出文件夹不存在，请在缓存目录下查找合并结果，"
                                                      "或者使用Everything工具搜索缓存路径下MP4后缀的文件。"))
         except Exception as e:
             logger.error(e)
+            self.text_view.append(str(e))
         finally:
             self.merging = False
             logger.info("TASK FINISHED {}".format(self.task_id))
 
     def select_path(self):
+
         self.task_list = list()
         self.directory = QtWidgets.QFileDialog.getExistingDirectory(None, self.translate("select cache path", "选取文件夹"),
                                                                     "D:/")
@@ -195,12 +210,14 @@ class UiMainWindow(object):
         if "" == path_str:
             self.text_view.append(self.translate("no path selected", "没选择任何路径。"))
         else:
-            self.searching = True
             try:
+                self.searching = True
                 self.search_path(path_str)
-                self.text_view.append("{}: {}{}".format(self.translate("find", "识别到"),
-                                                        len(self.task_list),
-                                                        self.translate("cache can merged", "个可合并视频。")))
+                self.text_view.append("{}: {}{}".format(
+                    self.translate("find", "识别到"),
+                    len(self.task_list),
+                    self.translate("cache can merged", "个可合并视频。"))
+                )
             finally:
                 self.searching = False
 
@@ -222,8 +239,11 @@ class UiMainWindow(object):
                 file_info = json.load(f)
                 if "ep" in file_info.keys():
                     name = "({}){}".format(file_info["ep"]["index"], file_info["ep"]["index_title"])
-                else:
-                    name = file_info["page_data"]["download_subtitle"]
+                elif "page_data" in file_info.keys():
+                    if "download_subtitle" in (file_info["page_data"]).keys():
+                        name = file_info["page_data"]["download_subtitle"]
+                    else:
+                        name = file_info["title"]
         except Exception as e:
             logger.error(e)
         video_path = "{}/{}".format(parent_path, self.target_video_name)
@@ -238,8 +258,12 @@ class UiMainWindow(object):
             return
         if os.path.exists(self.path_output):
             parent_path = self.path_output
-        t = Target(validate(name) if name is not None else "临时名称{}".format(uuid.uuid1()),
-                   video_path, audio_path, parent_path)
+        t = Target(
+            validate(name) if name is not None else "临时名称{}".format(uuid.uuid1()),
+            video_path,
+            audio_path,
+            parent_path
+        )
         self.task_list.append(t)
 
 
