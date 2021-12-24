@@ -11,24 +11,28 @@
 
 <p align="center">
     <a href="#">
-        <img src="https://img.shields.io/badge/哔哩BCM-0.28A+-green.svg" alt="哔哩BCM">
+        <img src="https://img.shields.io/badge/哔哩BCM-0.31B-green.svg" alt="哔哩BCM">
     </a>
 </p>
 
 #### 项目介绍
 批量合并B站APP的离线缓存文件，生成可食用的无损MP4。
 
+#### 视频教程
+B站地址：https://www.bilibili.com/video/BV1D541177ak
+
 #### 开源地址
 
 <p style="padding:10px;"  width="90%">
 
-Gitee 开源地址 : https://gitee.com/Oops404/cache-merge-bilibili
-
-GitHub 开源地址（暂停） ：https://github.com/Oops404/cache-merge-bilibili
+Gitee 开源地址 : https://gitee.com/Oops404/bcm
 </p>
 
 <p style="padding:10px;"  width="90%">
 
-欢迎提交 [pull request](https://gitee.com/Oops404/cache-merge-bilibili/pulls)，注意对应提交对应 `master` 分支
+欢迎提交 [pull request](https://gitee.com/Oops404/bcm/pulls)，注意对应提交 `master` 分支。
 
 </p>
+
+#### 欢迎支持
+![](https://gitee.com/Oops404/nas-guard/raw/master/%E6%AC%A2%E8%BF%8E%E6%94%AF%E6%8C%81.jpg)
