@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # author:　cheneyjin@outlook.com
-# update 20210422
+# update 20220109
 
 import _thread
 import json
@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import uuid
+import time
 from subprocess import Popen, PIPE
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -23,9 +24,11 @@ style_global = """
     """
 cgitb.enable(format='text')
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename='log.md')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    filename='log.md'
+)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -51,16 +54,22 @@ def validate(file_name_str):
 
 class Target(object):
 
-    def __init__(self, name, video_path, audio_path, root) -> None:
+    def __init__(self, bvid, name, video_path, audio_path, root) -> None:
         super().__init__()
+        self.bvid = bvid
         self.name = name
         self.video_path = video_path
         self.audio_path = audio_path
         self.root = root
 
     def __str__(self) -> str:
-        return "name:{}, video_path:{}, audio_path:{}, root:{}" \
-            .format(self.name, self.video_path, self.audio_path, self.root)
+        return "name:{}, video_path:{}, audio_path:{}, root:{}".format(
+            self.bvid,
+            self.name,
+            self.video_path,
+            self.audio_path,
+            self.root
+        )
 
 
 class UiMainWindow(object):
@@ -87,21 +96,26 @@ class UiMainWindow(object):
             os.mkdir(self.path_output)
 
     def retranslate_ui(self, main_window):
-        main_window.setWindowTitle(self.translate("bili cache merging tool", "B站缓存合并工具-翻滚吧年糕君 ID:1489684"))
+        main_window.setWindowTitle(self.translate(
+            "bili cache merging tool",
+            "B站缓存合并工具-翻滚吧年糕君 ID:1489684"
+        ))
         main_window.setFixedSize(main_window.width(), main_window.height())
         main_window.setWindowIcon(QIcon('local/favicon.ico'))
-        self.text_view.setText(self.translate("copy cache folder from your phone local storage path :\n"
-                                              "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
-                                              "note: do not change anything in cache folder",
-                                              "从手机存储路径：'/Android/data/tv.danmaku.bili/download'"
-                                              "拷贝缓存'完整文件夹'到电脑中，至任意目录内。"))
+        self.text_view.setText(self.translate(
+            "copy cache folder from your phone local storage path :\n"
+            "'/Android/data/tv.danmaku.bili/download' into your pc. \n"
+            "note: do not change anything in cache folder",
+            "从手机存储路径：'/Android/data/tv.danmaku.bili/download'"
+            "拷贝缓存'完整文件夹'到电脑中，至任意目录内。"
+        ))
         self.text_view.append("\r")
-        self.text_view.append(self.translate("if application gets some exception, "
-                                             "please email me at 'cheneyjin@outlook.com' "
-                                             "and attach the file named 'log.md'"
-                                             "that in application folder.",
-                                             "如果运行异常，请邮件至'cheneyjin@outlook.com'， "
-                                             "邮件中请上传程序目录下的log.md文件， 内容能图文并茂就更好了~"))
+        self.text_view.append(self.translate(
+            "if application gets some exception, please email me at 'cheneyjin@outlook.com' "
+            "and attach the file named 'log.md' that in application folder.",
+            "如果运行异常，请邮件至'cheneyjin@outlook.com'，"
+            "邮件中请上传程序目录下的log.md文件， 内容能图文并茂就更好了~"
+        ))
         self.path_select_btn.setText(self.translate("select cache path", "选择路径"))
 
         self.start_btn.setText(self.translate("start merge", "开始"))
@@ -150,34 +164,48 @@ class UiMainWindow(object):
 
     def start_merge(self):
         if self.searching:
-            self.text_view.append(self.translate("searching cache task is not over, do not click again",
-                                                 "检测缓存数量任务还没结束，别点啦！"))
+            self.text_view.append(self.translate(
+                "searching cache task is not over, do not click again",
+                "检测缓存数量任务还没结束，别点啦！"
+            ))
             return
         if not self.merging:
-            self.text_view.setText(self.translate("start merging,please wait a minute",
-                                                  "开始合并，请等待..."))
+            self.text_view.setText(self.translate(
+                "start merging,please wait a minute",
+                "开始合并，请等待..."
+            ))
             self.merging = True
         else:
-            self.text_view.append(self.translate("program is working,do not click again",
-                                                 "正在工作，不要重复点击"))
+            self.text_view.append(self.translate(
+                "program is working,do not click again",
+                "正在工作，不要重复点击"
+            ))
             return
 
-        _thread.start_new_thread(self.task, ("Thread-1", 2,))
+        _thread.start_new_thread(self.task, ("bcm-task1", 2,))
 
     def task(self, arg1, arg2):
         try:
             self.task_id = uuid.uuid1()
             logger.info("\nTASK START {}".format(self.task_id))
             if self.task_list is None or len(self.task_list) < 1:
-                self.text_view.append(self.translate("no cache file searched", "别点啦，没检测到文件"))
+                self.text_view.append(self.translate(
+                    "no cache file searched",
+                    "别点啦，没检测到文件"
+                ))
                 return
             for index, f in enumerate(self.task_list):
-                # cmd = "{}/local/ffmpeg.exe -y -i \"{}\" -i \"{}\" -c:v copy -c:a aac -strict " \
-                #       "experimental \"{}/{}.mp4\"" \
-                #     .format(path_app, f.video_path, f.audio_path, f.root, f.name)
-                cmd = "{}/local/ffmpeg.exe -i \"{}\" -i \"{}\" -c:v copy -c:a copy \"{}/{}.mp4\"" \
-                    .format(path_app, f.video_path, f.audio_path, f.root, f.name)
-                logger.info(cmd)
+                result_file = "{}/{}.mp4".format(f.root, f.name)
+                if os.path.exists(result_file):
+                    f.name = f.name + str(time.time())
+                cmd = "{}/local/ffmpeg.exe -i \"{}\" -i \"{}\" -c:v copy -c:a copy \"{}/{}.mp4\"".format(
+                    path_app,
+                    f.video_path,
+                    f.audio_path,
+                    f.root,
+                    f.name
+                )
+                logger.info("[{}]:{}".format(f.bvid, cmd))
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
                     self.text_view.append("内容:{}，{}\n进度：{}%".format(
@@ -187,12 +215,15 @@ class UiMainWindow(object):
                     )
                     self.text_view.moveCursor(QTextCursor.End)
             if os.path.exists(self.path_output):
-                self.text_view.append(self.translate("finished. check the output path in app dir.",
-                                                     "运行结束，查看本应用路径下的\"输出目录\"吧。"))
+                self.text_view.append(self.translate(
+                    "finished. check the output path in app dir.",
+                    "运行结束，查看本应用路径下的\"输出目录\"吧。"
+                ))
             else:
-                self.text_view.append(self.translate("output path was not exist, please check result in cache path.",
-                                                     "输出文件夹不存在，请在缓存目录下查找合并结果，"
-                                                     "或者使用Everything工具搜索缓存路径下MP4后缀的文件。"))
+                self.text_view.append(self.translate(
+                    "output path was not exist, please check result in cache path.",
+                    "输出文件夹不存在，请在缓存目录下查找合并结果，或者使用Everything工具搜索缓存路径下MP4后缀的文件。"
+                ))
         except Exception as e:
             logger.error(e)
             self.text_view.append(str(e))
@@ -203,8 +234,11 @@ class UiMainWindow(object):
     def select_path(self):
 
         self.task_list = list()
-        self.directory = QtWidgets.QFileDialog.getExistingDirectory(None, self.translate("select cache path", "选取文件夹"),
-                                                                    "D:/")
+        self.directory = QtWidgets.QFileDialog.getExistingDirectory(
+            None,
+            self.translate("select cache path", "选取文件夹"),
+            "D:/"
+        )
         self.text_view.setText("{}: {}".format(self.translate("path", "路径"), self.directory))
         path_str = str(self.directory)
         if "" == path_str:
@@ -244,6 +278,8 @@ class UiMainWindow(object):
                         name = file_info["page_data"]["download_subtitle"]
                     else:
                         name = file_info["title"]
+                if "bvid" in file_info.keys():
+                    bvid = file_info["bvid"]
         except Exception as e:
             logger.error(e)
         video_path = "{}/{}".format(parent_path, self.target_video_name)
@@ -253,18 +289,25 @@ class UiMainWindow(object):
         if video_exist is False or audio_exist is False:
             logger.error("FILE PATH {}:{}".format(video_exist, video_path))
             logger.error("FILE PATH {}:{}".format(audio_exist, audio_path))
-            self.text_view.append("{}{}".format(self.translate("missing file detected in cache path: ",
-                                                               "检测到缓存存在缺失,路径："), parent_path))
+            self.text_view.append("{}{}".format(
+                self.translate(
+                    "missing file detected in cache path: ",
+                    "检测到缓存存在缺失,路径："
+                ),
+                parent_path
+            ))
             return
         if os.path.exists(self.path_output):
             parent_path = self.path_output
-        t = Target(
-            validate(name) if name is not None else "临时名称{}".format(uuid.uuid1()),
-            video_path,
-            audio_path,
-            parent_path
+        self.task_list.append(
+            Target(
+                bvid,
+                validate(name) if name is not None else "临时名称{}".format(uuid.uuid1()),
+                video_path,
+                audio_path,
+                parent_path
+            )
         )
-        self.task_list.append(t)
 
 
 if __name__ == '__main__':
