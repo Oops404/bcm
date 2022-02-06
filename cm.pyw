@@ -198,7 +198,7 @@ class UiMainWindow(object):
                 result_file = "{}/{}.mp4".format(f.root, f.name)
                 if os.path.exists(result_file):
                     f.name = f.name + str(time.time())
-                cmd = "{}/local/ffmpeg.exe -i \"{}\" -i \"{}\" -c:v copy -c:a copy \"{}/{}.mp4\"".format(
+                cmd = "\"{}/local/ffmpeg.exe\" -i \"{}\" -i \"{}\" -c:v copy -c:a copy \"{}/{}.mp4\"".format(
                     path_app,
                     f.video_path,
                     f.audio_path,
