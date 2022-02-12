@@ -25,26 +25,6 @@ style_global = """
         }
     """
 
-cgitb.enable(format='text')
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='log.md'
-)
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-
-
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-
-sys.excepthook = handle_exception
-
 path_app = os.path.split(os.path.abspath(sys.argv[0]))[0]
 
 
@@ -76,8 +56,9 @@ class Target(object):
 
 class UiMainWindow(object):
 
-    def __init__(self) -> None:
+    def __init__(self, logger) -> None:
         super().__init__()
+        self.logger = logger
         self.task_id = None
         self.task_list = None
         self.directory = None
@@ -198,7 +179,7 @@ class UiMainWindow(object):
     def task(self, arg1, arg2):
         try:
             self.task_id = uuid.uuid1()
-            logger.info("\nTASK START {}".format(self.task_id))
+            self.logger.info("\nTASK START {}".format(self.task_id))
             for index, f in enumerate(self.task_list):
                 result_file = "{}/{}.mp4".format(f.root, f.name)
                 if os.path.exists(result_file):
@@ -210,7 +191,7 @@ class UiMainWindow(object):
                     f.root,
                     f.name
                 )
-                logger.info("[{}]:{}".format(f.bvid, cmd))
+                self.logger.info("[{}]:{}".format(f.bvid, cmd))
                 with Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as p:
                     p.communicate()
                     self.text_view.append("内容:{}，{}\n进度：{}%".format(
@@ -230,11 +211,11 @@ class UiMainWindow(object):
                     "输出文件夹不存在，请在缓存目录下查找合并结果，或者使用Everything工具搜索缓存路径下MP4后缀的文件。"
                 ))
         except Exception as e:
-            logger.error(traceback.format_exc())
+            self.logger.error(traceback.format_exc())
             self.text_view.append(str(e))
         finally:
             self.merging = False
-            logger.info("TASK FINISHED {}".format(self.task_id))
+            self.logger.info("TASK FINISHED {}".format(self.task_id))
 
     def select_path(self):
         self.task_list = list()
@@ -285,14 +266,14 @@ class UiMainWindow(object):
                 if "bvid" in file_info.keys():
                     bvid = file_info["bvid"]
         except Exception as e:
-            logger.error(traceback.format_exc())
+            self.logger.error(traceback.format_exc())
         video_path = "{}/{}".format(parent_path, self.target_video_name)
         audio_path = "{}/{}".format(parent_path, self.target_audio_name)
         video_exist = os.path.exists(video_path)
         audio_exist = os.path.exists(audio_path)
         if video_exist is False or audio_exist is False:
-            logger.error("FILE PATH {}:{}".format(video_exist, video_path))
-            logger.error("FILE PATH {}:{}".format(audio_exist, audio_path))
+            self.logger.error("FILE PATH {}:{}".format(video_exist, video_path))
+            self.logger.error("FILE PATH {}:{}".format(audio_exist, audio_path))
             self.text_view.append("{}{}".format(
                 self.translate(
                     "missing file detected in cache path: ",
@@ -312,17 +293,3 @@ class UiMainWindow(object):
                 parent_path
             )
         )
-
-
-if __name__ == '__main__':
-    try:
-        app = QApplication(sys.argv)
-        MainWindow = QMainWindow()
-        # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        # app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
-        ui = UiMainWindow()
-        ui.setup_ui(MainWindow)
-        MainWindow.show()
-        sys.exit(app.exec_())
-    except Exception as e:
-        logger.error(traceback.format_exc())

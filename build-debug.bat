@@ -1,1 +1,1 @@
-pyinstaller -F -c -i local/favicon.ico cm.py
+pyinstaller -F -c -i local/favicon.ico executor.pyw
