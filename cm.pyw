@@ -16,12 +16,15 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import cgitb
+# import qdarkstyle
+import traceback
 
 style_global = """
         *{
             font-family: "Microsoft YaHei";
         }
     """
+
 cgitb.enable(format='text')
 
 logging.basicConfig(
@@ -87,7 +90,7 @@ class UiMainWindow(object):
         self.merging = False
         self.searching = False
         self.font = QtGui.QFont()
-        self.font.setFamily("Microsoft YaHei Light")
+        # self.font.setFamily("Microsoft YaHei Light")
         self.font.setPointSize(10)
         self.translate = QtCore.QCoreApplication.translate
 
@@ -130,7 +133,7 @@ class UiMainWindow(object):
         self.central_widget.setObjectName("central_widget")
 
         self.vertical_LayoutWidget = QtWidgets.QWidget(self.central_widget)
-        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 309))
+        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 298))
         self.vertical_LayoutWidget.setObjectName("verticalLayoutWidget")
         self.vertical_LayoutWidget.setContentsMargins(1, 1, 1, 1)
         self.vertical_layout = QtWidgets.QVBoxLayout(self.vertical_LayoutWidget)
@@ -163,37 +166,39 @@ class UiMainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def start_merge(self):
-        if self.searching:
-            self.text_view.append(self.translate(
-                "searching cache task is not over, do not click again",
-                "检测缓存数量任务还没结束，别点啦！"
-            ))
-            return
-        if not self.merging:
-            self.text_view.setText(self.translate(
-                "start merging,please wait a minute",
-                "开始合并，请等待..."
-            ))
-            self.merging = True
-        else:
-            self.text_view.append(self.translate(
-                "program is working,do not click again",
-                "正在工作，不要重复点击"
-            ))
-            return
-
-        _thread.start_new_thread(self.task, ("bcm-task1", 2,))
+        try:
+            if self.searching:
+                self.text_view.append(self.translate(
+                    "searching cache task is not over, do not click again",
+                    "检测缓存数量任务还没结束，别点啦！"
+                ))
+                return
+            if self.task_list is None or len(self.task_list) < 1:
+                self.text_view.append(self.translate(
+                    "no cache file to be searched",
+                    "别点啦，没检测到文件"
+                ))
+                return
+            if not self.merging:
+                self.text_view.setText(self.translate(
+                    "start merging,please wait a minute",
+                    "开始合并，请等待..."
+                ))
+                self.merging = True
+            else:
+                self.text_view.append(self.translate(
+                    "program is working,do not click again",
+                    "正在工作，不要重复点击"
+                ))
+                return
+            _thread.start_new_thread(self.task, ("bcm-task1", 2,))
+        finally:
+            self.text_view.moveCursor(QTextCursor.End)
 
     def task(self, arg1, arg2):
         try:
             self.task_id = uuid.uuid1()
             logger.info("\nTASK START {}".format(self.task_id))
-            if self.task_list is None or len(self.task_list) < 1:
-                self.text_view.append(self.translate(
-                    "no cache file searched",
-                    "别点啦，没检测到文件"
-                ))
-                return
             for index, f in enumerate(self.task_list):
                 result_file = "{}/{}.mp4".format(f.root, f.name)
                 if os.path.exists(result_file):
@@ -225,14 +230,13 @@ class UiMainWindow(object):
                     "输出文件夹不存在，请在缓存目录下查找合并结果，或者使用Everything工具搜索缓存路径下MP4后缀的文件。"
                 ))
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
             self.text_view.append(str(e))
         finally:
             self.merging = False
             logger.info("TASK FINISHED {}".format(self.task_id))
 
     def select_path(self):
-
         self.task_list = list()
         self.directory = QtWidgets.QFileDialog.getExistingDirectory(
             None,
@@ -281,7 +285,7 @@ class UiMainWindow(object):
                 if "bvid" in file_info.keys():
                     bvid = file_info["bvid"]
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
         video_path = "{}/{}".format(parent_path, self.target_video_name)
         audio_path = "{}/{}".format(parent_path, self.target_audio_name)
         video_exist = os.path.exists(video_path)
@@ -311,9 +315,14 @@ class UiMainWindow(object):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    MainWindow = QMainWindow()
-    ui = UiMainWindow()
-    ui.setup_ui(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+    try:
+        app = QApplication(sys.argv)
+        MainWindow = QMainWindow()
+        # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        # app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+        ui = UiMainWindow()
+        ui.setup_ui(MainWindow)
+        MainWindow.show()
+        sys.exit(app.exec_())
+    except Exception as e:
+        logger.error(traceback.format_exc())
