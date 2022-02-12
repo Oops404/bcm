@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # author:　cheneyjin@outlook.com
-# update 20220109
-
+# update 20220212
+import traceback
 import _thread
 import json
 import logging
@@ -16,8 +16,8 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import cgitb
+
 # import qdarkstyle
-import traceback
 
 style_global = """
         *{
@@ -32,7 +32,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     filename='log.md'
 )
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
@@ -86,11 +85,9 @@ class UiMainWindow(object):
         self.target_audio_name = "audio.m4s"
         self.target_file_info = "entry.json"
 
-        # self.run_path = os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
         self.merging = False
         self.searching = False
         self.font = QtGui.QFont()
-        # self.font.setFamily("Microsoft YaHei Light")
         self.font.setPointSize(10)
         self.translate = QtCore.QCoreApplication.translate
 
@@ -101,7 +98,7 @@ class UiMainWindow(object):
     def retranslate_ui(self, main_window):
         main_window.setWindowTitle(self.translate(
             "bili cache merging tool",
-            "B站缓存合并工具-翻滚吧年糕君 ID:1489684"
+            "哔哩BCM-翻滚吧年糕君 ID:1489684 "
         ))
         main_window.setFixedSize(main_window.width(), main_window.height())
         main_window.setWindowIcon(QIcon('local/favicon.ico'))
@@ -119,6 +116,8 @@ class UiMainWindow(object):
             "如果运行异常，请邮件至'cheneyjin@outlook.com'，"
             "邮件中请上传程序目录下的log.md文件， 内容能图文并茂就更好了~"
         ))
+        self.text_view.append("<a href='https://gitee.com/Oops404/nas-guard/raw/master"
+                              "/%E6%AC%A2%E8%BF%8E%E6%94%AF%E6%8C%81.jpg'>👉欢迎打赏👈o(￣▽￣)ブ</a>")
         self.path_select_btn.setText(self.translate("select cache path", "选择路径"))
 
         self.start_btn.setText(self.translate("start merge", "开始"))
@@ -133,7 +132,7 @@ class UiMainWindow(object):
         self.central_widget.setObjectName("central_widget")
 
         self.vertical_LayoutWidget = QtWidgets.QWidget(self.central_widget)
-        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 298))
+        self.vertical_LayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 309))
         self.vertical_LayoutWidget.setObjectName("verticalLayoutWidget")
         self.vertical_LayoutWidget.setContentsMargins(1, 1, 1, 1)
         self.vertical_layout = QtWidgets.QVBoxLayout(self.vertical_LayoutWidget)
@@ -144,9 +143,10 @@ class UiMainWindow(object):
         self.path_select_btn.setFont(self.font)
 
         self.vertical_layout.addWidget(self.path_select_btn)
-        self.text_view = QtWidgets.QTextEdit(self.vertical_LayoutWidget)
+        self.text_view = QtWidgets.QTextBrowser(self.vertical_LayoutWidget)
         self.text_view.setObjectName("text_view")
         self.text_view.setFont(self.font)
+        self.text_view.setOpenExternalLinks(True)
 
         self.vertical_layout.addWidget(self.text_view)
         self.start_btn = QtWidgets.QPushButton(self.vertical_LayoutWidget)
