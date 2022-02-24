@@ -252,7 +252,8 @@ class UiMainWindow(object):
     def load_file(self, path):
         parent_path = os.path.abspath(os.path.join(path, ".."))
         file_info_path = "{}/../{}".format(parent_path, self.target_file_info)
-        name = None
+        name = "default"
+        bvid = "default"
         try:
             with open(file_info_path, "r", encoding="utf-8") as f:
                 file_info = json.load(f)
@@ -265,6 +266,8 @@ class UiMainWindow(object):
                         name = file_info["title"]
                 if "bvid" in file_info.keys():
                     bvid = file_info["bvid"]
+                elif "ep" in file_info.keys() and "bvid" in (file_info["ep"]).keys():
+                    bvid = file_info["ep"]["bvid"]
         except Exception as e:
             self.logger.error(traceback.format_exc())
         video_path = "{}/{}".format(parent_path, self.target_video_name)
