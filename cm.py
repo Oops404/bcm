@@ -252,6 +252,8 @@ class UiMainWindow(object):
     def load_file(self, path):
         parent_path = os.path.abspath(os.path.join(path, ".."))
         file_info_path = "{}/../{}".format(parent_path, self.target_file_info)
+        num=0
+        beta = "default"
         name = "default"
         bvid = "default"
         try:
@@ -261,7 +263,9 @@ class UiMainWindow(object):
                     name = "({}){}".format(file_info["ep"]["index"], file_info["ep"]["index_title"])
                 elif "page_data" in file_info.keys():
                     if "download_subtitle" in (file_info["page_data"]).keys():
-                        name = file_info["page_data"]["download_subtitle"]
+                        num = file_info["page_data"]["page"]
+                        beta = file_info["page_data"]["download_subtitle"]
+                        name = "P" + str(num) + " " + beta
                     else:
                         name = file_info["title"]
                 if "bvid" in file_info.keys():
